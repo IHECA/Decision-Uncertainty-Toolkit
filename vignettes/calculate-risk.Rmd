@@ -1,0 +1,136 @@
+---
+title: "Calculating risk measures"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{calculate-risk}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, echo = FALSE}
+library(DecisionUncertaintyToolkit)
+```
+
+In public health crises like the COVID-19 pandemic, decision-makers must make decisions with incomplete evidence. Infection disease modellers can capture some of this parameter uncertainty through probabilistic sensitivity analysis, uncertainty analysis, and/or Bayesian methods. Decisions can be defined via stated policy objective. For example, the objective may be to ensure that the number of individuals requiring hospitalization remains below the available hospital capacity (as in our hypothetical example) or that cumulative cases do not exceed a specified threshold. The stated policy objective establishes the criteria for what is considered an undesirable or “bad outcome.” For instance, exceeding hospital capacity is more undesirable than not exceeding it. Therefore, the stated policy objective acts as a threshold against which risks can be evaluated. Risk can be measured in terms of the probability of an undesirable outcome occurring, the magnitude of deviations from the stated policy objective, and the duration of deviations.
+
+## Formula {#risk-form}
+
+The expected risk of each policy alternative can be calculated as described in the box below using the outputs from multiple model runs with different input parameter sets (e.g., probabilistic sensitivity, uncertainty, or Bayesian inference analysis). An alternative version of this formula that takes into account simulation runs with different weights can be found in the [Additional information](#info) section.
+
+#### Risk measure formula
+
+::: rmdnote
+$$
+{\small
+\textrm{Expected Risk} = 
+  \begin{cases}
+  \frac{1}{N} \sum_{n = 1}^{N}  \sum_{t = t_{\rm min}}^{t_{\rm max}}(\max(D_t, O_{nt})-D_t) &\textrm{if } D_t \textrm{ is a maximum} \\
+  \\\
+  \frac{1}{N}\sum_{n = 1}^{N}  \sum_{t = t_{\rm min}}^{t_{\rm max}}(D_t - \min(D_t, O_{nt})) &\textrm{if } D_t \textrm{ is a minimum}
+  \end{cases}
+}
+$$
+
+Where $n = 1…N$ are the number of simulations runs in the analysis, $t = t_{\rm min}…t_{\rm max}$ is the simulation time, $O_{\rm nt}$ is the model outcome result for simulation run $n$ at time $t$, and $D_{\rm t}$ is the decision threshold at a given time (the stated policy objective).
+:::
+
+The expected risk is calculated over a pre-defined time range, which should be selected to capture important features of the decision problem, such as the maximum duration for which any of the policy options being considered might be adopted. The decision threshold can be either a maximum, such as a maximum hospital capacity, or a minimum, such as a target number of vaccinations to be delivered. It is also possible for Dt to have different values for different time periods, for example, if hospital capacity is expected to increase or decrease. However, it is important that all values of Dt, N, and the time span (tmin to tmax) are the same for baseline scenario and all the policy alternatives to ensure a consistent basis for comparison.
+
+## Functions {#risk-funs}
+
+The functions [`calculate_risk()`](#calc-risk) and [`tabulate_risk()`](#risk-table) are used to: (i) calculate the expected risk measure for each scenario and (ii) generate a data.frame containing the expected risk results for multiple scenarios relative to the baseline scenario.
+
+### `calculate_risk()` {#calc-risk}
+
+First, we calculate the expected risk for each scenario by calling `calculate_risk()`. Inputs to this function are: (i) a list of the model output data.frames (or a single data.frame) as described in the [Data format](#format-data) and [Synthetic data](#syn-data) sections, (ii) the simulation time range to be considered (tmin and tmax); ***these must be numeric values (not dates)***, (iii) a vector of decision threshold values (Dt) for each model time from tmin to tmax; the vector can contain a single value or different values for different time periods, (iv) a binary variable for the decision threshold (Dt_max) indicating if the threshold is a maximum value (Dt_max=TRUE) or a minimum value (Dt_max=FALSE), (v) a binary variable (W) indicating whether the calculated risk measure should be weighted based on the weight vector (see [Additional information](#info)); by default W=FALSE and the risk measure is not weighted (i.e., an equal weight of 1 is assumed for all simulation runs), and (vi) if W=TRUE a weight vector as described the [Data format](#format-data) section must be provided.
+
+If a list of data.frames is passed to the `calculate_risk()`, it will return a list of corresponding risk values; if a single data.frame is passed it will return a single risk value.
+
+```{r, calc_risk}
+# define input variables
+tmin<-min(psa_data$Intervention_1[,1]) #minimum simulation time 
+tmax<-max(psa_data$Intervention_1[,1]) #maximum simulation time 
+Dt<-c(rep(750, length(tmin:tmax)))  #decision threshold vector (single value)
+Dt_max<-TRUE #indicates the threshold values are maximums
+
+# calculate risk measure
+risk_measures_list<-calculate_risk(psa_data, tmin, tmax, Dt, Dt_max)
+```
+
+### `tabulate_risk()` {#risk-table}
+
+We then call `tabulate_risk()` to generate a data.frame containing the expected risk results for multiple scenarios relative to the baseline scenario. Inputs to this function are: (i) the list of risk values generated by [`calculate_risk()`](#calc-risk); ***the first element of the vector must be the risk value for the baseline scenario (the comparator),*** and (ii) the number of scenarios being considered including the baseline scenario (n_s).
+
+```{r, risk_table}
+## generate risk table dataframe
+risk_table<-tabulate_risk(risk_measures_list,n_s=4)
+```
+
+### Sharing outputs {#risk-outputs}
+
+We can format the risk table data.frame into a table to share with decision-makers. In most cases, this risk table should not be presented alone but should be accompanied by the plots, which will be described in the following chapters to provide additional context.
+
+```{r, risk_dt}
+## output risk table as a DT if you want something nicer looking
+DT::datatable(risk_table, options = list(
+  searching = FALSE,  # Remove search bar
+  info = FALSE,  # Remove information text 
+  paging = FALSE,  # Remove previous/next buttons
+  ordering = FALSE  # Remove column sort arrows
+))
+```
+
+We also recommend the following standard description for presenting the risk table above to decision-makers. We provide the standard description in paragraph and bullet point form for ease of use.
+
+#### Standard description {.unnumbered}
+
+::: rmdnote
+The expected risk values in the first row of the table above capture the **probability** of the scenario [*exceeding*]{.underline}[^01-risk_measure-1] the specified policy target (i.e., how likely it is), the **magnitude** of the [*exceedance*]{.underline}[^01-risk_measure-2] from the target, and the **length of time** the [*exceedance*]{.underline}[^01-risk_measure-3] is likely to last. Higher risk values indicate a greater risk that the scenario will not achieve the policy objective.
+
+Interpretation of the risk value is more intuitive using a relative comparator. The policy risk impact in the second row of the table compares the risk associated with each intervention to the baseline scenario. The policy risk impact is interpreted as the percent change in risk relative to the baseline scenario. For example, the expected risk of [*exceeding*]{.underline}[^01-risk_measure-4] the policy target in Intervention 1 is reduced by 91.5% relative to the baseline scenario.
+:::
+
+[^01-risk_measure-1]: if threshold is a minimum replace with *falling below*
+
+[^01-risk_measure-2]: if threshold is a minimum replace with *shortfall*
+
+[^01-risk_measure-3]: if threshold is a minimum replace with *shortfall*
+
+[^01-risk_measure-4]: if threshold is a minimum replace with *falling below*
+
+#### Standard description bullet points {.unnumbered}
+
+::: rmdnote
+The expected risk values in the first row of the table above captures:
+
+-   The **probability** of the scenario [*exceeding*]{.underline}[^01-risk_measure-5] the specified policy target (i.e., how likely it is).
+
+-   The **magnitude** of the [*exceedance*]{.underline}[^01-risk_measure-6] from the target.
+
+-   The **length of time** the [*exceedance*]{.underline}[^01-risk_measure-7] is likely to last.
+
+-   Higher risk values indicate a greater risk that the scenario will not achieve the policy objective.
+
+The policy risk impact in the second row of the table:
+
+-   Compares the risk associated with each intervention to the baseline scenario.
+
+-   It is interpreted as the percent change in risk relative to the baseline scenario.
+
+-   For example, the expected risk of [*exceeding*]{.underline}[^01-risk_measure-8] the policy target in Intervention 1 is reduced by 91.5% relative to the baseline scenario.
+:::
+
+[^01-risk_measure-5]: if threshold is a minimum replace with *falling below*
+
+[^01-risk_measure-6]: if threshold is a minimum replace with *shortfall*
+
+[^01-risk_measure-7]: if threshold is a minimum replace with *shortfall*
+
+[^01-risk_measure-8]: if threshold is a minimum replace with *falling below*
