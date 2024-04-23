@@ -1,9 +1,9 @@
 #' Calculate risk measures
-#' 
+#'
 #' @param psa_data A data.frame (or a list of data.frames containing) where the first column contains the model time, and subsequent columns contain the predicted output for each simulation run at the respective time. See Data format section for more information.
-#' 
+#'
 #' @section Data format:
-#' 
+#'
 #' The model time in the first column must contain numeric values indicating a simulation time (ex. 0, 1, 2, 3,...) or dates (ex. 01/01/2024, 01/02/2024) which must be in `R` Date format (i.e., class="Date"). If comparing simulation results across multiple scenarios, provide a list of data.frames, where each data.frame gives the output for one scenario.
 #'
 #' @param tmin Numeric value giving the minimum simulation time
@@ -12,14 +12,14 @@
 #' @param Dt_max Logical indicating whether decision threshold is a maximum (`TRUE`) or minimum (`FALSE`)
 #' @param W Logical indicating whether the risk calculation should be weighted or not
 #' @param weight Numeric vector containing weights for the risk calculation, one per time step
-#' 
+#'
 #' @return Numeric value or list of risk score(s)
-#' 
+#'
 #' @export
 calculate_risk <- function(
-    psa_data, 
-    tmin, tmax, 
-    Dt, Dt_max=TRUE, 
+    psa_data,
+    tmin, tmax,
+    Dt, Dt_max=TRUE,
     W=FALSE, weight=NULL) {
   # check arguments up-front
   if(W & is.null(weight)) stop('Weighted calculation requested but weight vector was not provided.')
@@ -36,7 +36,7 @@ calculate_risk <- function(
         if (setequal(lapply(weight, length),N)){
         }else{
           #Return error message if Dt is not the same length as tmin:tmax
-          stop(paste("The weight vector must be the same length as 
+          stop(paste("The weight vector must be the same length as
                     the number of simulation runs."))
         }
       }else{
@@ -64,15 +64,14 @@ calculate_risk <- function(
 }
 
 #' Calculate risk measure for a single set of simulations
-#' 
+#'
 #' @inheritParams calculate_risk
-#' 
+#'
 #' @return Numeric value of risk score
-
 calculate_risk_1 <- function(
-    psa_data, 
-    tmin, tmax, 
-    Dt, Dt_max, 
+    psa_data,
+    tmin, tmax,
+    Dt, Dt_max,
     W, weight) {
   N<-(length(psa_data[1,])-1)
   expected_risk0<-0
@@ -80,7 +79,7 @@ calculate_risk_1 <- function(
   #sum over N psa runs
   for (i in 2:(N+1)){
     #sum over tmin to tmax for threshold that is a maximum
-    if(Dt_max==TRUE){ 
+    if(Dt_max==TRUE){
       risk_n<-pmax(psa_data[(tmin+1):(tmax+1),i], Dt) - Dt
       #expected risk (total)
       expected_risk0<-expected_risk0+(sum(risk_n)*weight[i-1])

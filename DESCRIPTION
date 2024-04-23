@@ -20,5 +20,9 @@ Depends:
     R (>= 2.10)
 LazyData: true
 Imports: 
-    scales
+    ggplot2,
+    ggtext,
+    paletteer,
+    scales,
+    stats
 Config/testthat/edition: 3
