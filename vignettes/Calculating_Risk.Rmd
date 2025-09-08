@@ -1,0 +1,140 @@
+---
+title: "Calculating Risk"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Calculating Risk}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, echo = FALSE}
+library(DUToolkit)
+```
+
+Decisions can be defined via stated policy objectives. In our example the policy objective is to ensure that the number of individuals requiring hospitalization remains below the available hospital capacity. The stated policy objective establishes the criteria for differentiating between policy successes and failures. For example, exceeding hospital capacity is more undesirable than not exceeding it. Therefore, the stated policy objective acts as a threshold against which risks can be evaluated. Risk can be measured in terms of the probability of an undesirable outcome occurring (i.e., exceeding the policy objective), the magnitude of deviations from the stated policy objective, and the duration of these deviations. 
+
+## Formula {#risk-form}
+
+The expected risk for each policy alternative can be estimated using the outputs from multiple model runs with different input parameter sets, as outlined in the box below. Additionally, a weighted version of this formula, which accounts for simulation runs with different weights, is provided.
+
+The expected risk is calculated over a pre-defined time range ($t = t_{\rm min}…t_{\rm max}$), which should be selected to capture important features of the decision problem, such as the maximum duration for which any of the policy options being considered might be adopted. The decision threshold ($D_{\rm t}$) can be either a maximum, such as a maximum hospital capacity, or a minimum, such as a target number of vaccinations to be delivered. The decision threshold ($D_{\rm t}$) can also have different values for different time periods if, for example, the hospital capacity is expected to change over time. To ensure a consistent basis for comparison, it is important that all decision threshold ($D_{\rm t}$) values, the total number of simulations ($N$), and the time range ($t = t_{\rm min}…t_{\rm max}$) are consistent across the baseline scenario and each of the policy alternatives being compared.
+
+#### Risk measure formula
+
+::: rmdnote
+$$
+{\small
+\textrm{Expected Risk} = 
+  \begin{cases}
+  \frac{1}{N} \sum_{n = 1}^{N}  \sum_{t = t_{\rm min}}^{t_{\rm max}}(\max(D_t, O_{nt})-D_t) &\textrm{if } D_t \textrm{ is a maximum} \\
+  \\\
+  \frac{1}{N}\sum_{n = 1}^{N}  \sum_{t = t_{\rm min}}^{t_{\rm max}}(D_t - \min(D_t, O_{nt})) &\textrm{if } D_t \textrm{ is a minimum}
+  \end{cases}
+}
+$$
+
+Where $n = 1…N$ are the number of simulations runs in the analysis, $t = t_{\rm min}…t_{\rm max}$ is the simulation time over which the expected risk is calculated, $O_{\rm nt}$ is the model outcome result for simulation run $n$ at time $t$, and $D_{\rm t}$ is the decision threshold at a given time (the stated policy objective), which can be a maximum or a minimum.
+
+The Expected Risk value calculation implies the following assumptions: (i) ***distribution neutrality of deviations from Dt:*** a certain risk of exceeding Dt by 10 has the same value as a risk distributed equally of an exceedance of either 0 or 20; and (ii) ***linearity in cumulative risk:*** an exceedance of 1 over 100 days has the same value as an exceedance of 10 over 10 days.
+:::
+#### Risk measure formula with weights {.unnumbered}
+::: rmdnote
+$$
+{\small
+\textrm{Expected Risk} = 
+  \begin{cases}
+  \frac{1}{N} \sum_{n = 1}^{N} W_n \times \sum_{t = t_{\rm min}}^{t_{\rm max}}(\max(D_t, O_{nt})-D_t) &\textrm{if } D_t \textrm{ is a maximum} \\
+  \\\
+  \frac{1}{N}\sum_{n = 1}^{N} W_n \times \sum_{t = t_{\rm min}}^{t_{\rm max}}(D_t - \min(D_t, O_{nt})) &\textrm{if } D_t \textrm{ is a minimum}
+  \end{cases}
+}
+$$
+
+Where $n = 1…N$ are the number of simulations runs in the analysis, $t = t_{\rm min}…t_{\rm max}$ is the simulation time, $O_{\rm nt}$ is the model outcome result for simulation run $n$ at time $t$, $D_{\rm t}$ is the decision threshold at a given time (the stated policy objective), and $W_{\rm n}$ is the weight value for simulation run $n$.
+:::
+
+## Calculating risk with DUToolkit {#risk-calc}
+First, we calculate the expected risk for each policy alternative using the  `calculate_risk()` function. The policy objective is to ensure that hospital demand remains below the available daily hospital capacity of 750 patients, which defines the decision threshold. We consider a baseline scenario that represented the expected outcome in the absence of any intervention (i.e., taking no action) and a hypothetical policy alternative (Intervention 1 – close schools). We considered a time range of 100 days starting from 2021-01-01, corresponding to the first day of policy implementation. We use the model outputs for 814 simulation runs that incorporate parameter uncertainty for the baseline scenario and Intervention 1.  
+
+```{r, calc_risk}
+# define inputs
+tmin <- min(psa_data$Intervention_1[, 1]) # minimum simulation time
+tmax <- max(psa_data$Intervention_1[, 1]) # maximum simulation time
+Dt <- c(rep(750, length(tmin:tmax))) # decision threshold vector
+Dt_max <- TRUE # indicates the threshold values are maximums
+
+# calculate risk measure
+risk_measures_list <- calculate_risk(psa_data, tmin, tmax, Dt, Dt_max)
+
+risk_measures_list
+```
+
+The expected risk values for each policy alternative are challenging to interpret independently. A more intuitive understanding can be achieved by using a pre-defined baseline scenario as a comparator and calculating the percent change in risk relative to the baseline scenario. We defined this as the policy risk impact, which can be calculated for each policy alternative using the `tabulate_risk()` function.
+
+```{r, risk_table}
+## generate risk table
+risk_table <- tabulate_risk(risk_measures_list,
+  n_s = length(risk_measures_list)
+)
+
+risk_table
+```
+
+### Sharing outputs {#risk-outputs}
+
+In most cases, the risk table should not be presented alone but should be accompanied by the plots described in the other vignettes to provide additional context.
+
+We also recommend the following standard description for presenting the risk table to decision-makers. We provide the standard description in paragraph and bullet point form for ease of use.
+
+#### Standard description {.unnumbered}
+
+::: rmdnote
+The expected risk values in the first row of the table above capture the **probability** of the scenario [*exceeding*]{.underline}[^01-risk_measure-1] the specified policy target (i.e., how likely it is), the **magnitude** of the [*exceedance*]{.underline}[^01-risk_measure-2] from the target, and the **length of time** the [*exceedance*]{.underline}[^01-risk_measure-3] is likely to last. Higher risk values indicate a greater risk that the scenario will not achieve the policy objective.
+
+Interpretation of the risk value is more intuitive using a relative comparator. The policy risk impact in the second row of the table compares the risk associated with each intervention to the baseline scenario. The policy risk impact is interpreted as the percent change in risk relative to the baseline scenario. For example, the expected risk of [*exceeding*]{.underline}[^01-risk_measure-4] the policy target in Intervention 1 is reduced by 91.30% relative to the baseline scenario.
+:::
+
+[^01-risk_measure-1]: if threshold is a minimum replace with *falling below*
+
+[^01-risk_measure-2]: if threshold is a minimum replace with *shortfall*
+
+[^01-risk_measure-3]: if threshold is a minimum replace with *shortfall*
+
+[^01-risk_measure-4]: if threshold is a minimum replace with *falling below*
+
+#### Standard description bullet points {.unnumbered}
+
+::: rmdnote
+The expected risk values in the first row of the table above captures:
+
+-   The **probability** of the scenario [*exceeding*]{.underline}[^01-risk_measure-5] the specified policy target (i.e., how likely it is).
+
+-   The **magnitude** of the [*exceedance*]{.underline}[^01-risk_measure-6] from the target.
+
+-   The **length of time** the [*exceedance*]{.underline}[^01-risk_measure-7] is likely to last.
+
+-   Higher risk values indicate a greater risk that the scenario will not achieve the policy objective.
+
+The policy risk impact in the second row of the table:
+
+-   Compares the risk associated with each intervention to the baseline scenario.
+
+-   It is interpreted as the percent change in risk relative to the baseline scenario.
+
+-   For example, the expected risk of [*exceeding*]{.underline}[^01-risk_measure-8] the policy target in Intervention 1 is reduced by 91.5% relative to the baseline scenario.
+:::
+
+[^01-risk_measure-5]: if threshold is a minimum replace with *falling below*
+
+[^01-risk_measure-6]: if threshold is a minimum replace with *shortfall*
+
+[^01-risk_measure-7]: if threshold is a minimum replace with *shortfall*
+
+[^01-risk_measure-8]: if threshold is a minimum replace with *falling below*

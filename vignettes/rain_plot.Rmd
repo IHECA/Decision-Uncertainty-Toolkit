@@ -1,0 +1,96 @@
+---
+title: "Raincloud plots"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Raincloud plots}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7, fig.height = 5
+)
+```
+
+```{r setup, echo = FALSE}
+library(DUToolkit)
+```
+
+The probability densities of the highest (or lowest if the threshold is a minimum) projected outcome across simulation runs are plotted for each policy alternative alongside corresponding box plots, which indicate the mean and 50th percentile range. These plots are presented collectively on a single graph to facilitate visual comparison of the policy alternatives. The decision threshold is shown directly on the plot as a vertical line to provide a clear reference point for interpreting the outputs.
+
+We use the `plot_raincloud()` function to generate the raincloud plots.
+
+```{r, calc_peak}
+# define inputs
+tmin <- min(psa_data$Intervention_1[, 1]) # minimum simulation time
+tmax <- max(psa_data$Intervention_1[, 1]) # maximum simulation time
+Dt_max <- TRUE # indicates the threshold values are maximums
+D <- 750 # single threshold value for the peak
+
+## find peak values
+peak_values_list <- get_max_min_values(psa_data, tmin, tmax, Dt_max)
+
+# generate raincloud plot
+raincloud_plot <- plot_raincloud(peak_values_list, D)
+
+raincloud_plot
+```
+
+### Sharing outputs {#rain-outputs}
+
+The raincloud plot can supplement the probability density plots by providing an intuitive and direct visual comparison of the severity of the situation at its expected peak for each policy alternative on a single plot.
+
+We also recommend the following standard description for presenting the raincloud plots to decision-makers. We provide the standard description in paragraph and bullet point form for ease of use.
+
+#### Standard description {.unnumbered}
+
+::: rmdnote
+This graph shows the distribution of the [*highest*]{.underline}[^04-raincloud_plots-1] forecasted [*outcome*]{.underline}[^04-raincloud_plots-2] (i.e., the [*peak*]{.underline}[^04-raincloud_plots-3]) for each scenario alongside a corresponding box plot which indicates the mean and 50th percentile range. All interventions are displayed on a single graph to allow for visual comparison.
+
+The red dashed line indicates the policy target. The more distribution area located to the [*right*]{.underline}[^04-raincloud_plots-4] of the policy target line, the greater the probability that the [*outcome*]{.underline}[^04-raincloud_plots-5] at its forecasted [*peak*]{.underline}[^04-raincloud_plots-6] will [*surpass*]{.underline}[^04-raincloud_plots-7] the policy target.
+:::
+
+[^04-raincloud_plots-1]: if threshold is a minimum replace with *lowest*
+
+[^04-raincloud_plots-2]: insert outcome description (ex. hospital demand)
+
+[^04-raincloud_plots-3]: if threshold is a minimum replace with *low point*
+
+[^04-raincloud_plots-4]: if threshold is a minimum replace with *left*
+
+[^04-raincloud_plots-5]: insert outcome description (ex. hospital demand)
+
+[^04-raincloud_plots-6]: if threshold is a minimum replace with *low point*
+
+[^04-raincloud_plots-7]: if threshold is a minimum replace with *fall below*
+
+#### Standard description bullet points {.unnumbered}
+
+::: rmdnote
+This graph shows:
+
+-   The distribution of the [*highest*]{.underline}[^04-raincloud_plots-8] forecasted [*outcome*]{.underline}[^04-raincloud_plots-9] (i.e., the [*peak*]{.underline}[^04-raincloud_plots-10]) for each scenario on a single graph to allow for visual comparison.
+
+-   A corresponding box plot for each scenario which indicates the mean and 50th percentile range.
+
+-   The red dashed line indicates the policy target.
+
+-   The more distribution area located to the [*right*]{.underline}[^04-raincloud_plots-11] of the policy target line, the greater the probability that the [*outcome*]{.underline}[^04-raincloud_plots-12] at its forecasted [*peak*]{.underline}[^04-raincloud_plots-13] will [*surpass*]{.underline}[^04-raincloud_plots-14] the policy target.
+:::
+
+[^04-raincloud_plots-8]: if threshold is a minimum replace with *lowest*
+
+[^04-raincloud_plots-9]: insert outcome description (ex. hospital demand)
+
+[^04-raincloud_plots-10]: if threshold is a minimum replace with *low point*
+
+[^04-raincloud_plots-11]: if threshold is a minimum replace with *left*
+
+[^04-raincloud_plots-12]: insert outcome description (ex. hospital demand)
+
+[^04-raincloud_plots-13]: if threshold is a minimum replace with *low point*
+
+[^04-raincloud_plots-14]: if threshold is a minimum replace with *fall below*

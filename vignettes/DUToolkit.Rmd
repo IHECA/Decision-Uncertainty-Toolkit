@@ -1,0 +1,103 @@
+---
+title: "Introduction to DUToolkit"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to DUToolkit}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+During public health crises such as the COVID-19 pandemic, decision-makers rely on models to predict and estimate the impact of various policy alternatives on health outcomes. Often, there is a high degree of uncertainty in the evidence base underpinning these models. When there is increased uncertainty, the risk of selecting a policy option that does not align with the intended policy objective also increases; we term this decision risk. Even when models adequately capture uncertainty, the tools used to communicate their outcomes, underlying uncertainty, and the associated decision risk are important to mitigate decisions to adopt sub-optimal policies and/or critical health technologies.
+
+The DUToolkit package provides a suite of tools and visualizations for the characterization, estimation, and communication of parameter uncertainty and decision risk. The package is designed to evaluate the impact of policy alternatives on outcomes compared to a pre-defined baseline scenario. The baseline scenario is typically defined as maintaining the status quo or a scenario where no mitigation policies are implemented (i.e. a ‘do nothing’ or ‘existing policy’ scenario). DUToolkit leverages model outputs from uncertainty analysis techniques, such as probabilistic sensitivity analysis, general uncertainty analysis, or Bayesian inference, to support decision-making.
+
+## Getting started {#get-started}
+
+The DUToolkit functions fall into five main categories:
+
+-   ***Calculating risk:*** includes `calculate_risk()` and
+    `tabulate_risk()`
+
+-   ***Time-outcome fan plot:*** includes `plot_fan()` and
+    `calculate_time()`
+
+-   ***Probability density plots with risk shading:*** includes
+    `get_max_min_values()`, `plot_density()`,
+    `calculate_threshold_probs()`, and `calculate_max_min_risk()`
+
+-   ***Raincloud plots:*** includes `plot_raincloud()`
+
+-   ***Temporal probability density plots:*** includes
+    `get_relative_values()`, `plot_temporal()`, and
+    `sum_stats_temporal()`
+
+### Synthetic data {#syn-data}
+
+The DUToolkit package includes pre-loaded synthetic model outputs stored
+in the R object `psa_data`, which serve as an example dataset. This
+dataset represents a hypothetical scenario where a decision-maker is
+selecting between two policies related to COVID-19 in 2020: (i) Baseline
+– do nothing/current state and (ii) Intervention 1 – close
+schools. Each policy is expected to impact the number of individuals in
+the hospital. Hospital capacity has a maximum upper bound, which is the
+decision threshold.
+
+### Data format {#format-data}
+
+The DUToolkit functions require model outputs from multiple simulation runs using different parameter sets (e.g., probabilistic sensitivity analysis, general uncertainty analysis, or Bayesian inference). These outputs must follow a standardized format, as follows:
+
+1.  A list of `data.frames` *(Required)*
+    -   The list must contain one `data.frame` for each policy
+        alternative.
+
+    -   Each `data.frame` must have:
+
+        -   A **first column** representing model time, either as
+            numeric values, (e.g., 1, 2, 3, …) or as dates in R **Date
+            format** (e.g., 2021-01-01, 2021-01-02, ...) with
+            class = "Date".
+
+        -   **Subsequent columns** containing predicted outputs for each
+            simulation run at the corresponding time points (e.g., if there are
+            100 simulations, there will be 101 columns in the `data.frame`).
+
+    -   To ensure a consistent basis for comparison, the model time in
+        the first column should be **identical across all policy
+        alternatives** (i.e., the first column in every `data.frame`
+        should contain the same values).
+
+```{r example1}
+library(DUToolkit)
+
+# example data.frame with date in first column
+head(psa_data$Baseline[, 1:5])
+```
+
+2.  A list of vectors containing weights *(Optional)* 
+
+    - Some simulation runs may be more or less likely than others.
+        Various methods can account for this, such as calculating a
+        log-likelihood for each simulation run and converting it
+        into a weight. Users must choose the most appropriate method for
+        their specific scenario.   
+     -  Each **vector** in the list corresponds to a specific policy
+        alternative and contains the **weights** assigned to each
+        simulation run.
+    -   Each weight vector must have:
+
+        -   The **same number of elements** as the number of simulation
+            run columns in the corresponding output `data.frame` (i.e.,
+            all columns **except** the first column).
+
+        -   The **order of weights** must match the order of simulation
+            run columns in the corresponding `data.frame`.

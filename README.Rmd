@@ -13,78 +13,154 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup, echo = FALSE}
-library(DecisionUncertaintyToolkit)
-```
-
-# DecisionUncertaintyToolkit
+<img src="man/figures/logo2.png" style="float: left; width: 170px; margin-right: 20px;" />
+<h1>DUToolkit</h1>
 
 <!-- badges: start -->
+
 <!-- badges: end -->
 
-During public health crises such as the COVID-19 pandemic, decision-makers have relied on infectious disease models to predict and estimate the impact of various health technologies. The challenges associated with capturing and representing uncertainty using infectious disease models can contribute to risks of making decisions misaligned to policy objectives. Even when uncertainty is adequately captured in the analysis, the tools for communicating the risks are important to mitigate decisions to adopt sub-optimal policies and/or critical health technologies such as vaccines and antivirals. 
+The DUToolkit package provides a suite of tools and visualization for the characterization, estimation, and communication of parameter uncertainty and decision risk. The package is designed to evaluate the impact of policy alternatives on outcomes compared to baseline (i.e., counterfactual analysis), leveraging model outputs from uncertainty analysis.
 
-**The aim of the Decision Uncertainty Toolkit (DUT) is to extend best practices from health economics to infectious disease modelling and develop a suite of tools and visualization techniques to represent parameter uncertainty and the risk these unknowns present to decision-makers.**
-
-The DUT is designed to evaluate the impact of policy alternatives on outcomes compared to baseline (i.e., counterfactual analysis). It leverages model outputs from uncertainty analysis for baseline and policy alternatives to produce visual representations of uncertainty and quantitative measures for assessing the associated risks.
-
-This book provides open-source `R` code and explains how to use the code to produce the DUT outputs using uncertainty analysis results from your own model. It also includes standard text descriptions and examples of each toolkit element.
+During public health crises such as the COVID-19 pandemic, decision-makers relied on models to predict and estimate the impact of various policy alternatives on health outcomes. Often, there is a high degree of uncertainty in the evidence base underpinning these models. When there is increased uncertainty, the risk of selecting a policy option that does not align with the intended policy objective also increases; we term this decision risk. Even when models adequately capture uncertainty, the tools used to communicate their outcomes, underlying uncertainty, and the associated decision risk are important to mitigate decisions to adopt sub-optimal policies and/or critical health technologies.
 
 ## Installation {#install}
 
-You can install the development version of DecisionUncertaintyToolkit from [GitHub](https://github.com/) with:
+You can install the ‘DUToolkit’ package from CRAN with the following command in the console:
 
-``` r
-# install.packages("devtools")
-devtools::install_github("papsti/DecisionUncertaintyToolkit")
+```{r install, echo = FALSE}
+install.packages("DUToolkit")
 ```
 
-## Get started {#get-started}
+## Usage
 
-The DUT functions fall into several categories:
+```{r risk, echo = FALSE}
+library(DUToolkit)
 
--   ***Risk Measure:*** includes `calculate_risk()` and `tabulate_risk()` (see `vignettes("calculate-risk")`)
+# calculate risk measures
+tmin <- "2021-01-01"
+tmax <- "2021-04-10"
+Dt <- rep(750, nrow(psa_data$Baseline))
 
-## Inputting simulation data {#format-data}
+risk_measures <- calculate_risk(
+  psa_data,
+  tmin = tmin,
+  tmax = tmax,
+  Dt = Dt,
+  Dt_max = TRUE
+)
 
-The DUT functions require input data (model outputs from the uncertainty analysis) to be in a standardized format. Model outputs must be structured as follows:
-
-1.  *(Required)* A data.frame where the first column contains the model time, and subsequent columns contain the predicted output for each simulation run at the respective time.
-
-    -   The model time in the first column must contain numeric values indicating a simulation time (ex. 0, 1, 2, 3,...) or dates (ex. 01/01/2024, 01/02/2024) which must be in `R` Date format (i.e., class="Date").
-
-    -   If comparing multiple scenarios, the outputs for each scenario must be stored in separate data.frames.
-
-2.  (*Optional)* A vector containing the weights assigned to each simulation run.
-
-    -   In an uncertainty analysis, different model runs may be more and less likely than others. There are various methods to account for this, such as calculating a log-likelihood for each simulation run. This information can be incorporated into the expected risk calculations by assigning a weight to each simulation run. For example, the log-likelihood for each simulation run could be convert into a weight. There are many ways to assign weights, and users must choose the most appropriate method for their specific scenario.
-
-    -   The weight vector must contain the same number of elements as the number of simulation run columns in the corresponding output data.frame as described above (i.e., all columns except for the first columns). The order of the weights in the vector must also follow the same order as the columns of the corresponding output data.frame.
-
-    -   If comparing multiple model scenarios, each scenario must have its own unique weight vector.
-
-### Synthetic data {#syn-data}
-
-The `DecisionUncertaintyToolkit` package includes a synthetic simulation dataset called `psa_data` that you can use to experiment with package functions. Calling the package with `library(DecisionUncertaintyToolkit)` will load the `psa_data` object into your R session.
-
-Imagine a decision maker is selecting between multiple policy interventions related to COVID-19 in 2020. The model outputs are timeseries of hospital occupancy under each of the following scenarios:
-
-- Baseline: status quo, no intervention
-- Intervention 1: close schools
-- Intervention 2: institute a mandatory masking policy
-- Intervention 3: close schools and institute a mandatory masking policy
-
-Each intervention is expected to impact the number of individuals in the hospital. Hospital capacity has a maximum upper bound, which we will use as our decision threshold.
-
-`psa_data` is a named list of data frames, with each data frame containing  synthetic model outputs for a given scenario: 
-
-```{r}
-class(psa_data)
-names(psa_data)
-
-psa_data$Baseline[1:5, 1:10]
-
-psa_data$Intervention_1[1:5, 1:10]
+tabulate_risk(risk_measures, n_s = 2)
 ```
 
-These data are used as examples throughout the package vignettes.
+```{r fan, echo = FALSE}
+# generate fan plots
+fan_plots <- plot_fan(
+  psa_data,
+  tmin = tmin,
+  tmax = tmax,
+  Dt = Dt,
+  Dt_max = TRUE
+)
+
+## example plot
+fan_plots$Baseline
+```
+
+```{r peak_values, echo = FALSE}
+## find peak values
+peak_values_list <- get_max_min_values(
+  psa_data,
+  tmin = tmin,
+  tmax = tmax,
+  Dt_max = TRUE
+)
+
+head(peak_values_list$Baseline)
+```
+
+```{r density, echo = FALSE}
+# define single threshold value for the peak (D)
+D <- 750
+# generate density plots
+density_plots <- plot_density(
+  peak_values_list,
+  D = D,
+  Dt_max = TRUE,
+  risk_measures
+)
+
+## example plot
+density_plots$Intervention_1
+```
+
+```{r probs, echo = FALSE}
+# define vector of threshold values
+Dp <- c(750, 1000, 2000)
+
+# calculate probability that peak value is > specified threshold values
+peak_probs <- calculate_threshold_probs(
+  peak_values_list,
+  Dp = Dp,
+  Dt_max = TRUE
+)
+
+peak_probs$Baseline
+```
+
+```{r peak_risk, echo = FALSE}
+# calculate risk measures at peak values
+peak_risk <- calculate_max_min_risk(
+  peak_values_list,
+  D = D,
+  Dt_max = TRUE
+)
+
+# generate risk table dataframe
+tabulate_risk(peak_risk, n_s = 2)
+```
+
+```{r rain, echo = FALSE}
+# generate raincloud plot
+plot_raincloud(
+  peak_values_list,
+  D = D
+)
+```
+
+```{r temporal, echo = FALSE}
+# define time step variables
+t_s <- 20 # the total number of timesteps from the peak
+t_ss <- 10 # the timestep increments
+
+# find values for temporal density plots
+peak_temporal_list <- get_relative_values(
+  psa_data,
+  peak_values_list,
+  t_s = t_s,
+  t_ss = t_ss
+)
+
+head(peak_temporal_list$Baseline[[1]])
+```
+
+```{r plot_temporal, echo = FALSE}
+# generate peak temporal density plots
+peak_temporal_plots <- plot_temporal(
+  peak_temporal_list,
+  D
+)
+
+## example plot
+peak_temporal_plots$Intervention_1
+```
+
+```{r stats_temporal, echo = FALSE}
+# generate summary statistics for peak temporal data
+stats_peak_temporal <- sum_stats_temporal(peak_temporal_list)
+
+stats_peak_temporal$Baseline
+```
+
+## Acknowledgments {#ackn}
+We would like to thank everyone whom we engaged with including workshop participants for their feedback on the Decision Uncertainty Toolkit. 

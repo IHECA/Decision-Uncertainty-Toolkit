@@ -4,40 +4,66 @@
 \alias{calculate_risk}
 \title{Calculate risk measures}
 \usage{
-calculate_risk(
-  psa_data,
-  tmin,
-  tmax,
-  Dt,
-  Dt_max = TRUE,
-  W = FALSE,
-  weight = NULL
-)
+calculate_risk(data, tmin, tmax, Dt, Dt_max = TRUE, W = FALSE, weight = NULL)
 }
 \arguments{
-\item{psa_data}{A data.frame (or a list of data.frames containing) where the first column contains the model time, and subsequent columns contain the predicted output for each simulation run at the respective time. See Data format section for more information.}
+\item{data}{A list of data.frames (one data.frame for each policy
+alternative).}
 
-\item{tmin}{Numeric value giving the minimum simulation time}
+\item{tmin}{A numeric value or a date specifying the minimum simulation time
+to include in the analysis (ex. 1 or "2021-01-01"). This should correspond to a value in the first
+column of each data.frame in \code{data}.}
 
-\item{tmax}{Numeric value giving the maximum simulation time}
+\item{tmax}{A numeric value or a date specifying the maximum simulation time to
+include in the analysis (ex. 100 or "2021-04-10"). This should correspond to a value in the first
+column of each data.frame in \code{data}.}
 
-\item{Dt}{Numeric vector of decision thresholds at each time between \code{tmin} and `tmax``}
+\item{Dt}{A numeric vector of decision thresholds, one for each model
+time step between \code{tmin} and \code{tmax}.}
 
-\item{Dt_max}{Logical indicating whether decision threshold is a maximum (\code{TRUE}) or minimum (\code{FALSE})}
+\item{Dt_max}{A logical value indicating whether the decision threshold
+is a maximum (\code{TRUE}) or a minimum (\code{FALSE}). The default is \code{TRUE}.}
 
-\item{W}{Logical indicating whether the risk calculation should be weighted or not}
+\item{W}{A logical value indicating whether the risk calculation should
+be weighted (\code{TRUE}) or not (\code{FALSE}). The default is \code{FALSE} (an equal
+weight of 1 is assumed for all simulation runs).}
 
-\item{weight}{Numeric vector containing weights for the risk calculation, one per time step}
+\item{weight}{A list of numeric vectors of weights for the risk calculation,
+with one weight corresponding to each time step. Required if \code{W} is \code{TRUE}.}
 }
 \value{
-Numeric value or list of risk score(s)
+A list of risk scores, one for each policy alternative.
 }
 \description{
-Calculate risk measures
+This function calculates the expected risk measure for each
+policy alternative using the outputs from multiple model runs with different
+input parameter sets (e.g., probabilistic sensitivity, uncertainty, or
+Bayesian inference analysis).
 }
-\section{Data format}{
+\section{data format}{
 
-
-The model time in the first column must contain numeric values indicating a simulation time (ex. 0, 1, 2, 3,...) or dates (ex. 01/01/2024, 01/02/2024) which must be in \code{R} Date format (i.e., class="Date"). If comparing simulation results across multiple scenarios, provide a list of data.frames, where each data.frame gives the output for one scenario.
+Each data.frame in \code{data} contains the results from multiple model
+runs using different parameter sets (e.g., from probabilistic sensitivity,
+uncertainty, or Bayesian inference analysis). The first column contains
+the model time and subsequent columns contain the predicted output for
+each simulation run at the respective time.
+The model time in the first column must contain numeric values indicating
+a simulation time (ex. 1, 2, 3,...) or dates (ex. "2021-01-01", "2021-01-02")
+which must be in \code{R} Date format (i.e., class="Date"). To ensure a consistent
+basis for comparison, the model time in the first column should be the same for
+each policy alternative (data.frame).
 }
 
+\examples{
+tmin <- "2021-01-01"
+tmax <- "2021-04-10"
+Dt <- rep(750, nrow(psa_data$Baseline))
+
+calculate_risk(
+  psa_data,
+  tmin = tmin,
+  tmax = tmax,
+  Dt = Dt,
+  Dt_max = TRUE
+)
+}

@@ -7,13 +7,36 @@
 tabulate_risk(exp_risk_list, n_s)
 }
 \arguments{
-\item{exp_risk_list}{List of risk values for each scenario, whether the first element is the risk for the baseline scenario}
+\item{exp_risk_list}{A list of expected risk values
+where the first element corresponds to the baseline policy.
+This list can be generated using the \code{\link[=calculate_risk]{calculate_risk()}} function.}
 
-\item{n_s}{Numeric value of the number of scenarios (including the baseline) to include in the table}
+\item{n_s}{A numeric value of the number of policy alternatives (including
+the baseline policy) to include in the table.}
 }
 \value{
-A character matrix of risk values and policy risk impact (\%) for each strategy
+A character matrix of risk values and policy risk impact (\%)
+for each policy alternative.
 }
 \description{
-Output risk measures to table
+This function tabulates the expected risk values for each
+policy alternative and the percent change in risk relative to the baseline scenario.
+}
+\examples{
+tmin <- "2021-01-01"
+tmax <- "2021-04-10"
+Dt <- rep(750, nrow(psa_data$Baseline))
+
+risk_measures <- calculate_risk(
+  psa_data,
+  tmin = tmin,
+  tmax = tmax,
+  Dt = Dt,
+  Dt_max = TRUE
+)
+
+tabulate_risk(
+  risk_measures,
+  n_s = length(psa_data)
+)
 }

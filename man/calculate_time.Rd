@@ -4,28 +4,62 @@
 \alias{calculate_time}
 \title{Calculate time of threshold exceedance}
 \usage{
-calculate_time(psa_data, tmin, tmax, Dt, Dt_max = TRUE)
+calculate_time(data, tmin, tmax, Dt, Dt_max = TRUE)
 }
 \arguments{
-\item{psa_data}{A data.frame (or a list of data.frames containing) where the first column contains the model time, and subsequent columns contain the predicted output for each simulation run at the respective time. See Data format section for more information.}
+\item{data}{A list of data.frames (one data.frame for each policy
+alternative).}
 
-\item{tmin}{Numeric value giving the minimum simulation time}
+\item{tmin}{A numeric value or a date specifying the minimum simulation time
+to include in the analysis (ex. 1 or "2021-01-01"). This should correspond to a value in the first
+column of each data.frame in \code{data}.}
 
-\item{tmax}{Numeric value giving the maximum simulation time}
+\item{tmax}{A numeric value or a date specifying the maximum simulation time to
+include in the analysis (ex. 100 or "2021-04-10"). This should correspond to a value in the first
+column of each data.frame in \code{data}.}
 
-\item{Dt}{Numeric vector of decision thresholds at each time between \code{tmin} and `tmax``}
+\item{Dt}{A numeric vector of decision thresholds, one for each model
+time step between \code{tmin} and \code{tmax}.}
 
-\item{Dt_max}{Logical indicating whether decision threshold is a maximum (\code{TRUE}) or minimum (\code{FALSE})}
+\item{Dt_max}{A logical value indicating whether the decision threshold
+is a maximum (\code{TRUE}) or a minimum (\code{FALSE}). The default is \code{TRUE}.}
 }
 \value{
-Dataframe or list of dataframe(s) of time and duration of first violation of the threshold
+A list of data.frames, one for each policy alternative.
 }
 \description{
-Calculate time of threshold exceedance
+For each policy alternative, this function calculates:
+(i) the percent of simulations in which the threshold is exceeded (or not
+met if the threshold is a minimum), (ii) the mean simulation time of the
+first exceedance and 95th percentile range, (iii) the mean duration of the
+first exceedance and 95th percentile range, and (iv) if the first column of
+model output data.frame passed to the function is a Date, the mean date of
+the first and last exceedance.
 }
-\section{Data format}{
+\section{data format}{
 
-
-The model time in the first column must contain numeric values indicating a simulation time (ex. 0, 1, 2, 3,...) or dates (ex. 01/01/2024, 01/02/2024) which must be in \code{R} Date format (i.e., class="Date"). If comparing simulation results across multiple scenarios, provide a list of data.frames, where each data.frame gives the output for one scenario.
+Each data.frame in \code{data} contains the results from multiple model
+runs using different parameter sets (e.g., from probabilistic sensitivity,
+uncertainty, or Bayesian inference analysis). The first column contains
+the model time and subsequent columns contain the predicted output for
+each simulation run at the respective time.
+The model time in the first column must contain numeric values indicating
+a simulation time (ex. 1, 2, 3,...) or dates (ex. "2021-01-01", "2021-01-02")
+which must be in \code{R} Date format (i.e., class="Date"). To ensure a consistent
+basis for comparison, the model time in the first column should be the same for
+each policy alternative (data.frame).
 }
 
+\examples{
+tmin <- "2021-01-01"
+tmax <- "2021-04-10"
+Dt <- rep(750, nrow(psa_data$Baseline))
+
+calculate_time(
+  psa_data,
+  tmin = tmin,
+  tmax = tmax,
+  Dt = Dt,
+  Dt_max = TRUE
+)
+}

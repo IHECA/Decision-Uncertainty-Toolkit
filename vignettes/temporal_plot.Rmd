@@ -1,0 +1,125 @@
+---
+title: "Temporal probability density plots"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Temporal probability density plots}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 6, fig.height = 4
+)
+```
+
+```{r setup, echo = FALSE}
+library(DUToolkit)
+```
+
+Decision-makers may also want to consider how risk changes over the modelled time range. 
+To do this, we plot the probability densities over time. The probability density of the highest (or lowest if the threshold is a minimum) projected outcome across simulation runs is plotted in the center of the graph for a given policy alternative. Above and below, the probability density of the outcome at specified time points relative to the time of the highest (or lowest) project outcome is plotted to visually illustrate how uncertainty, and therefore risk, changes over time. The decision threshold is shown directly on the plot as a vertical line to provide a clear reference point for interpreting the outputs.
+
+First, we find the model output value at the specified time points relative to the peak value for each simulation run using the `get_relative_values()` function. In our example, we will find the hospital demand every ten days for up to 20 days before and after the peak hospital demand. 
+
+```{r, gen_data_temp, out.width='100%'}
+# define inputs
+tmin <- min(psa_data$Intervention_1[, 1]) # minimum simulation time
+tmax <- max(psa_data$Intervention_1[, 1]) # maximum simulation time
+Dt_max <- TRUE # indicates the threshold values are maximums
+D <- 750 # single threshold value for the peak
+t_s <- 20 # total number of time steps from the peak
+t_ss <- 10 # time step increments to move in
+
+## find peak values
+peak_values_list <- get_max_min_values(psa_data, tmin, tmax, Dt_max)
+
+# find values for temporal density plots
+peak_temporal_list <- get_relative_values(psa_data, peak_values_list, t_s, t_ss)
+
+head(peak_temporal_list$Baseline[[1]])
+```
+
+We then use the `plot_temporal()` function to generate the temporal probability density plots.
+
+```{r, gen_plot_temp, out.width='100%'}
+# generate peak temporal density plots
+peak_temporal_plots <- plot_temporal(peak_temporal_list, D)
+
+## example plot
+peak_temporal_plots$Baseline
+```
+The `sum_stats_temporal()` function can be used to calculate summary statistics (n, mean, median, and IQR) for the model output values at the time step relative to the peak value.
+
+```{r, gen_stats_temp, out.width='100%'}
+# generate summary statistics for peak temporal data
+stats_peak_temporal <- sum_stats_temporal(peak_temporal_list)
+
+stats_peak_temporal$Baseline
+```
+
+### Sharing outputs {#temp-outputs}
+
+The probability density plotted in the center of the peak temporal plot (labelled ‘peak’) is the same probability density that is plotted with `plot_density()` function and `plot_raincloud()` function. The temporal probability density plots can further supplement these probability density plots by showing how uncertainty changes over time for each scenario.
+
+We also recommend the following standard description for presenting the temporal probability density plots to decision-makers. We provide the standard description in paragraph and bullet point form for ease of use.
+
+#### Standard description {#temp_sd}
+
+::: rmdnote
+These graph visually illustrates how uncertainty changes over time by showing the distributions of the forecasted [*outcome*]{.underline}[^05-temporal_plots-1] over time. The distribution in the center of the plot represents the [*peak*]{.underline}[^05-temporal_plots-2] [*outcome*]{.underline}[^05-temporal_plots-3]. The distributions above and below show the outcome at different time points relative to the [*peak*]{.underline}[^05-temporal_plots-4], both forward (above) and backward (below) in time.
+
+The red dashed line indicates the policy target. A greater area to the [*right*]{.underline}[^05-temporal_plots-5] of this line means a higher risk of [*outcome*]{.underline}[^05-temporal_plots-6] [*exceeding*]{.underline}[^05-temporal_plots-7] the policy target at the specified time. Scenarios where the area to the [*right*]{.underline}[^05-temporal_plots-8] of the policy target is more quickly reduced as you move away from the [*peak*]{.underline}[^05-temporal_plots-9] result in a shorter periods of time at higher risk of not achieving the policy target.
+:::
+
+[^05-temporal_plots-1]: insert outcome description (ex. hospital demand)
+
+[^05-temporal_plots-2]: if threshold is a minimum replace with *low point*
+
+[^05-temporal_plots-3]: insert outcome description (ex. hospital demand)
+
+[^05-temporal_plots-4]: if threshold is a minimum replace with *low point*
+
+[^05-temporal_plots-5]: if threshold is a minimum replace with *left*
+
+[^05-temporal_plots-6]: insert outcome description (ex. hospital demand)
+
+[^05-temporal_plots-7]: if threshold is a minimum replace with *falling below*
+
+[^05-temporal_plots-8]: if threshold is a minimum replace with *left*
+
+[^05-temporal_plots-9]: if threshold is a minimum replace with *low point*
+
+#### Standard description bullet points {.unnumbered}
+
+::: rmdnote
+These graphs visually illustrates how uncertainty changes over time:
+
+-   The distribution in the center of the plot represents the [*peak*]{.underline}[^05-temporal_plots-10] [*outcome*]{.underline}[^05-temporal_plots-11].
+
+-   The distributions above and below show the outcome at different time points relative to the [*peak*]{.underline}[^05-temporal_plots-12], both forward (above) and backward (below) in time.
+
+-   The red dashed line indicates the policy target.
+
+-   A greater area to the [*right*]{.underline}[^05-temporal_plots-13] of this line means a higher chance of the [*outcome*]{.underline}[^05-temporal_plots-14] [*exceeding*]{.underline}[^05-temporal_plots-15] the policy target at the specified time.
+
+-   Scenarios where the area to the [*right*]{.underline}[^05-temporal_plots-16] of the policy target is more quickly reduced as you move away from the [*peak*]{.underline}[^05-temporal_plots-17] result in a shorter time frame of higher uncertainty.
+:::
+
+[^05-temporal_plots-10]: if threshold is a minimum replace with *low point*
+
+[^05-temporal_plots-11]: insert outcome description (ex. hospital demand)
+
+[^05-temporal_plots-12]: if threshold is a minimum replace with *low point*
+
+[^05-temporal_plots-13]: if threshold is a minimum replace with *left*
+
+[^05-temporal_plots-14]: insert outcome description (ex. hospital demand)
+
+[^05-temporal_plots-15]: if threshold is a minimum replace with *falling below*
+
+[^05-temporal_plots-16]: if threshold is a minimum replace with *left*
+
+[^05-temporal_plots-17]: if threshold is a minimum replace with *low point*

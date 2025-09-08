@@ -7,10 +7,13 @@
 \format{
 \subsection{\code{psa_data}}{
 
-A list of data frames, one for each scenario corresponding to the list item name (\code{Baseline}, \code{Intervention_1}, \code{Intervention_2}, \code{Intervention_3}). Each data frame has 200 rows and 1728 columns:
+A list of data frames, one for each scenario corresponding
+to the list item name (\code{Baseline}, \code{Intervention_1}). Each data frame has 100
+rows and 814 columns:
 \describe{
 \item{date}{(\code{Baseline} only) the simulation date in calendar time}
-\item{time}{(Intervention scenarios only) simulation time as integer starting with 0}
+\item{time}{(Intervention scenarios only) simulation time as integer
+starting with 0}
 \item{X1, ..., X1727}{individual simulation results}
 }
 }
@@ -19,6 +22,8 @@ A list of data frames, one for each scenario corresponding to the list item name
 psa_data
 }
 \description{
-Sample simulation outputs for a baseline scenario and three interventions, in a format compatible with package functions
+Sample simulation outputs for a baseline scenario and
+three interventions, in a format compatible with package
+functions
 }
 \keyword{datasets}

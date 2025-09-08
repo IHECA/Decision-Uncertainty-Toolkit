@@ -1,0 +1,122 @@
+---
+title: "Time-outcome fan plots"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Time-outcome fan plots}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7, fig.height = 5
+)
+```
+
+```{r setup, echo = FALSE}
+library(DUToolkit)
+```
+
+The DUToolkit includes a series of visual outputs that build upon those used in health economics. These visuals are designed to facilitate the intuitive and direct interpretation of model outputs by infectious disease modellers and decision-makers. The visual and numerical presentation of decision risk are designed as complementary outputs to support decision-makers’ deliberations.
+
+Time-outcome fan plots are the first of these visuals. In these plots, the trajectory of the outcome is summarized over time and plotted using the mean value for a given policy alternative. Uncertainty is characterized by shading the 50% and 95% credible intervals (calculated as 25th and 75th percentiles and 2.5th and 97.5th percentiles, respectively). The decision threshold is shown directly on the plot to provide a clear reference point for interpreting the outcome values.
+
+We generate the fan plots for each policy alternative using the `plot_fan()` function.
+
+```{r, gen_fan, out.width='100%', warning=FALSE, message=FALSE}
+# define inputs
+tmin <- min(psa_data$Intervention_1[, 1]) # minimum simulation time
+tmax <- max(psa_data$Intervention_1[, 1]) # maximum simulation time
+Dt <- c(rep(750, length(tmin:tmax))) # decision threshold vector
+Dt_max <- TRUE # indicates the threshold values are maximums
+
+# generate fan plots
+fan_plots <- plot_fan(psa_data, tmin, tmax, Dt, Dt_max)
+
+## example plot
+fan_plots$Baseline
+```
+
+All plotting functions in the DUToolkit return ggplot2 objects. You can adjust/customize the plots after they have been generated ([ggplot2 cheat sheet](https://rstudio.github.io/cheatsheets/html/data-visualization.html)). 
+
+```{r, cust_fan, out.width='100%', warning=FALSE, message=FALSE}
+# customize plots
+## add fixed y-axis limits and change the label of the y-axis
+fan_plots <- lapply(fan_plots, function(x) {
+  x + ggplot2::ylim(0, 4000) + ggplot2::labs(y = "Hospital Demand")
+})
+
+## remove subtitle and caption
+fan_plots <- lapply(fan_plots, function(x) {
+  x + ggplot2::labs(subtitle = NULL, caption = NULL)
+})
+
+## example plot
+fan_plots$Baseline
+```
+
+The `calculate_time()` function is used within `plot_fan()` to determine the uncertainty in the timing and duration of threshold exceedances, which are then displayed in the plot subtitle. Additionally, `calculate_time()` can be used independently to generate results in a tabular format without creating fan plots. Its outputs include:
+
+1.  Percent of simulations in which the threshold is exceeded (or not met if the threshold is a minimum).
+
+2.  Mean simulation time of the first exceedance and 95th percentile range.
+
+3.  Mean duration of the first exceedance and 95th percentile range.
+
+4.  If the first column of the model output passed to the function is a Date, the mean date of the first and last exceedance.
+
+```{r, calc_time}
+# Find mean and 95%CI of time and duration of first violation of the threshold
+time_outcomes_list <- calculate_time(psa_data, tmin, tmax, Dt, Dt_max)
+time_outcomes_list$Baseline
+```
+
+### Sharing outputs {#fan-outputs}
+
+These plots visually illustrate the uncertainty in the outcome (in this case, hospital demand) for each policy and facilitate assessment in relation to the decision threshold (hospital capacity). They can be used to visually assess the probability of exceeding the threshold and to understand the expected magnitude, timing, and duration of any exceedances. These plots should be presented alongside the risk measures to provide decision-makers with a quantitative measure of the risk associated with each policy, alongside a visual representation of uncertainty for additional context.
+
+We also recommend the following standard description for presenting the time-outcome fan plots to decision-makers. We provide the standard description in paragraph and bullet point form for ease of use.
+
+#### Standard description {.unnumbered}
+
+::: rmdnote
+These graphs visually displays the uncertainty surrounding the scenario’s **probability** of [*exceeding*]{.underline}[^1] the specified policy target. They indicate not only the degree of uncertainty but also provides insight into the **magnitude** by which the intervention is likely to [*exceed*]{.underline}[^2] the target (through percentile shading) and the anticipated **duration** of the [*exceedance*]{.underline}[^3].
+
+The **magnitude** and the **length of time** that the shaded areas [*extends beyond*]{.underline}[^4] the policy target (dashed red line) signifies the risk that the scenario will not achieve the policy objective. More shaded area [*above*]{.underline}[^5] the dashed red line for longer periods indicates a higher risk of not achieving the policy objective.
+:::
+
+[^1]: if threshold is a minimum replace with *falling below*
+
+[^2]: if threshold is a minimum replace with *fall below*
+
+[^3]: if threshold is a minimum replace with *short fall*
+
+[^4]: if threshold is a minimum replace with *falls below*
+
+[^5]: if threshold is a minimum replace with *below*
+
+#### Standard description bullet points {.unnumbered}
+
+::: rmdnote
+These graphs visually display:
+
+-   The uncertainty surrounding the scenario’s **probability** of [*exceeding*]{.underline}[^6] the specified policy target.
+
+-   They also provides insight into the **magnitude** by which the intervention is likely to [*exceed*]{.underline}[^7] the target (through percentile shading) and the anticipated **duration** of the [*exceedance*]{.underline}[^8].
+
+-   The **magnitude** and the **length of time** that the shaded areas [*extends beyond*]{.underline}[^9] the policy target (dashed red line) signifies the risk that the scenario will not achieve the policy objective.
+
+-   More shaded area [*above*]{.underline}[^10] the dashed red line for longer periods indicates a higher risk of not achieving the policy objective.
+:::
+
+[^6]: if threshold is a minimum replace with *falling below*
+
+[^7]: if threshold is a minimum replace with *fall below*
+
+[^8]: if threshold is a minimum replace with *short fall*
+
+[^9]: if threshold is a minimum replace with *falls below*
+
+[^10]: if threshold is a minimum replace with *below*

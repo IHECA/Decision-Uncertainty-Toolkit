@@ -1,0 +1,45 @@
+url: ~
+template:
+  bootstrap: 5
+
+reference:
+- title: Pre-loaded data
+  contents:
+  - psa_data
+
+- title: Calculating Risk
+  contents:
+  - calculate_risk
+  - tabulate_risk
+
+- title: Time-outcome fan plots
+  contents:
+  - plot_fan
+  - calculate_time
+
+- title: Probability density plots with risk shading
+  contents:
+  - get_max_min_values
+  - plot_density
+  - calculate_max_min_risk
+  - calculate_threshold_probs
+
+- title: Raincloud plots
+  contents:
+  - plot_raincloud
+
+- title: Temporal probability density plots
+  contents:
+  - get_relative_values
+  - plot_temporal
+  - sum_stats_temporal
+
+articles:
+- title: Test
+  navbar: ~
+  contents:
+  - Calculating_Risk
+  - Fan_Plots
+  - density_plots
+  - rain_plot
+  - temporal_plot

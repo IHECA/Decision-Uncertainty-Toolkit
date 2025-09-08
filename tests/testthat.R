@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(DecisionUncertaintyToolkit)
+library(DUToolkit)
 
-test_check("DecisionUncertaintyToolkit")
+test_check("DUToolkit")

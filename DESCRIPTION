@@ -1,12 +1,32 @@
-Package: DecisionUncertaintyToolkit
-Title: What the Package Does (One Line, Title Case)
-Version: 0.0.0.9000
-Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+Package: DUToolkit
+Title: Visualizing and Quantifying Decision Uncertainty
+Version: 1.0.0
+Authors@R: c(
+    person(given = "Megan", family = "Wiggins", email = "mwiggins@ihe.ca", 
+      role = c("aut", "cre"), comment = c(ORCID = "0009-0007-0290-4950")),
+    person(given = "Marie Betsy", family = "Varughese", role = c("aut"),
+      comment = c(ORCID = "0000-0002-8432-6539")),
+    person(given = "Ellen", family = "Rafferty", role = c("aut"),
+      comment = c(ORCID = "0000-0001-9974-8016")),
+    person(given = "Sasha", family = "van Katwyk", role = c("aut"),
+      comment = c(ORCID = "0000-0003-3026-2063")),
+    person(given = "Christopher", family = "McCabe", role = c("aut"),
+      comment = c(ORCID = "0000-0001-5728-4129")),
+    person(given = "Jeff", family = "Round", role = c("aut"),
+      comment = c(ORCID = "0000-0002-3103-6984")),
+    person(given = "Erin", family = "Kirwin", role = c("aut"),
+      comment = c(ORCID = "0000-0001-6957-7236")),
+    person(given = "Institute of Health Economics", role = c("cph", "aut")),
+    person(given = "Canadian Network for Modelling Infectious Diseases ", 
+      role = c("fnd"))
+    )
+Description: The Decision Uncertainty Toolkit provides a suite of tools to help 
+    modelers and decision-makers effectively interpret and communicate decision 
+    risk when evaluating multiple policy options. It uses model outputs from 
+    uncertainty analysis for baseline scenarios and policy alternatives to generate 
+    visual representations of uncertainty (ggplots) and quantitative measures for 
+    assessing associated risks.
+License: GPL (>= 2)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
@@ -19,10 +39,12 @@ VignetteBuilder: knitr
 Depends: 
     R (>= 2.10)
 LazyData: true
+LazyDataCompression: xz
 Imports: 
+    ggdist,
     ggplot2,
     ggtext,
-    paletteer,
+    rlang,
     scales,
     stats
 Config/testthat/edition: 3
