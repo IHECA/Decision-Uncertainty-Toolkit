@@ -1,6 +1,6 @@
 test_that("fan plot is returned in the correct format", {
   expect_type(fan_plots, "list")
-  expect_equal(class(fan_plots$Baseline), c("gg", "ggplot"))
+  expect_true(any(inherits(fan_plots$Baseline, c("ggplot", "gg"))))
   # one plot per scenario
   expect_equal(length(fan_plots), length(psa_data))
 })

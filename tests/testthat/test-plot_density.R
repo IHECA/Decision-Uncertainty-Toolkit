@@ -1,6 +1,6 @@
 test_that("density plot is returned in the correct format", {
   expect_type(density_plots, "list")
-  expect_equal(class(density_plots$Baseline), c("gg", "ggplot"))
+  expect_true(any(inherits(density_plots$Baseline, c("ggplot", "gg"))))
   # one plot per scenario
   expect_equal(length(density_plots), length(psa_data))
 })

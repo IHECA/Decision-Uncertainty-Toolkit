@@ -1,5 +1,6 @@
 test_that("raincloud plot is returned in the correct format", {
-  expect_equal(class(plot_raincloud(peak_values_list, D = D)), c("gg", "ggplot"))
+  expect_true(any(inherits(plot_raincloud(peak_values_list, D = D), c("ggplot", "gg"))))
+  #expect_equal(class(plot_raincloud(peak_values_list, D = D)), c("gg", "ggplot"))
 })
 
 test_that("the first argument is not a list with at least two elements", {
