@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 
 <!-- badges: end -->
 
-The DUToolkit package provides a suite of tools and visualization for the characterization, estimation, and communication of parameter uncertainty and decision risk. The package is designed to evaluate the impact of policy alternatives on outcomes compared to baseline (i.e., counterfactual analysis), leveraging model outputs from uncertainty analysis.
+The DUToolkit package provides a suite of tools and visualization for the characterization, estimation, and communication of parameter uncertainty and decision risk. The package is designed to evaluate the impact of policy alternatives on outcomes compared to baseline (i.e., counterfactual analysis), leveraging model outputs from uncertainty analysis. See [Wiggins et al. (2025)](https://doi.org/10.1371/journal.pone.0332522)  for a full description of the underlying methods. 
 
 During public health crises such as the COVID-19 pandemic, decision-makers relied on models to predict and estimate the impact of various policy alternatives on health outcomes. Often, there is a high degree of uncertainty in the evidence base underpinning these models. When there is increased uncertainty, the risk of selecting a policy option that does not align with the intended policy objective also increases; we term this decision risk. Even when models adequately capture uncertainty, the tools used to communicate their outcomes, underlying uncertainty, and the associated decision risk are important to mitigate decisions to adopt sub-optimal policies and/or critical health technologies.
 
@@ -28,13 +28,13 @@ During public health crises such as the COVID-19 pandemic, decision-makers relie
 
 You can install the ‘DUToolkit’ package from CRAN with the following command in the console:
 
-```{r install, echo = FALSE}
+```{r install, eval=FALSE}
 install.packages("DUToolkit")
 ```
 
 ## Usage
 
-```{r risk, echo = FALSE}
+```{r risk}
 library(DUToolkit)
 
 # calculate risk measures
@@ -53,7 +53,7 @@ risk_measures <- calculate_risk(
 tabulate_risk(risk_measures, n_s = 2)
 ```
 
-```{r fan, echo = FALSE}
+```{r fan}
 # generate fan plots
 fan_plots <- plot_fan(
   psa_data,
@@ -67,7 +67,7 @@ fan_plots <- plot_fan(
 fan_plots$Baseline
 ```
 
-```{r peak_values, echo = FALSE}
+```{r peak_values}
 ## find peak values
 peak_values_list <- get_max_min_values(
   psa_data,
@@ -79,7 +79,7 @@ peak_values_list <- get_max_min_values(
 head(peak_values_list$Baseline)
 ```
 
-```{r density, echo = FALSE}
+```{r density}
 # define single threshold value for the peak (D)
 D <- 750
 # generate density plots
@@ -94,7 +94,7 @@ density_plots <- plot_density(
 density_plots$Intervention_1
 ```
 
-```{r probs, echo = FALSE}
+```{r probs}
 # define vector of threshold values
 Dp <- c(750, 1000, 2000)
 
@@ -108,7 +108,7 @@ peak_probs <- calculate_threshold_probs(
 peak_probs$Baseline
 ```
 
-```{r peak_risk, echo = FALSE}
+```{r peak_risk}
 # calculate risk measures at peak values
 peak_risk <- calculate_max_min_risk(
   peak_values_list,
@@ -120,7 +120,7 @@ peak_risk <- calculate_max_min_risk(
 tabulate_risk(peak_risk, n_s = 2)
 ```
 
-```{r rain, echo = FALSE}
+```{r rain}
 # generate raincloud plot
 plot_raincloud(
   peak_values_list,
@@ -128,7 +128,7 @@ plot_raincloud(
 )
 ```
 
-```{r temporal, echo = FALSE}
+```{r temporal}
 # define time step variables
 t_s <- 20 # the total number of timesteps from the peak
 t_ss <- 10 # the timestep increments
@@ -144,7 +144,7 @@ peak_temporal_list <- get_relative_values(
 head(peak_temporal_list$Baseline[[1]])
 ```
 
-```{r plot_temporal, echo = FALSE}
+```{r plot_temporal}
 # generate peak temporal density plots
 peak_temporal_plots <- plot_temporal(
   peak_temporal_list,
@@ -155,7 +155,7 @@ peak_temporal_plots <- plot_temporal(
 peak_temporal_plots$Intervention_1
 ```
 
-```{r stats_temporal, echo = FALSE}
+```{r stats_temporal}
 # generate summary statistics for peak temporal data
 stats_peak_temporal <- sum_stats_temporal(peak_temporal_list)
 

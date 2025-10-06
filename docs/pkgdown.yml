@@ -1,4 +1,4 @@
-pandoc: '3.2'
+pandoc: 3.6.3
 pkgdown: 2.0.8
 pkgdown_sha: ~
 articles:
@@ -8,5 +8,5 @@ articles:
   Fan_Plots: Fan_Plots.html
   rain_plot: rain_plot.html
   temporal_plot: temporal_plot.html
-last_built: 2025-07-07T17:55Z
+last_built: 2025-10-06T14:44Z
 
